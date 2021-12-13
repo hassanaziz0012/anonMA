@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hackachat</title>
+
+    <style>
+        body {
+            background-color: black;
+            font-family: monospace;
+            color: green;
+            font-size: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        div.inputContainer {
+            display: flex;
+            align-items: flex-start;
+            justify-content: start;
+        }
+
+        input {
+            padding: 15px 10px;
+            width: 75%;
+            font-size: 15px;
+            color: green;
+            background-color: #181717;
+            outline: none;
+            border: none;
+            border: 1px solid green;
+        }
+
+        input::placeholder {
+            color: green;
+        }
+
+        div.room-options {
+            visibility: hidden;
+        }
+
+        button {
+            padding: 11.75px 11.75px;
+            font-size: 20px;
+            margin-left: 10px;
+            background-color: black;
+            color: green;
+            border: 1px solid green;
+        }
+
+        button:hover {
+            cursor: pointer;
+        }
+
+        hr {
+            background-color: green;
+            height: 1px;
+            border: none;
+            margin-bottom: 2em;
+        }
+        hr.half {
+            width: 20%;
+            margin: 0;
+        }
+
+        div.messages {
+            display: flex;
+            align-items: center;
+        }
+
+        div.message {
+            border: 1px solid green;
+            width: 75%;
+            padding: 10px;
+            margin-bottom: 1em;
+        }
+        
+        div.message p.content {
+            margin-top: 1.25em;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div>
+        <h2>Chatroom</h2>
+        <p>Invite code: {{ room.code }}</p>
+        <hr>
+    </div>
+
+    <div id="messages">
+    </div>
+
+    <div class="inputContainer">
+        <input type="text" id="message" name="message" placeholder="Type a message...">
+        <button onclick="sendMessage()">></button>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+    window.addEventListener('beforeunload', function(event) {
+        var requestOptions = {
+            method: 'POST',
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify({
+                "user": "{{ user }}",
+            }),
+            redirect: 'follow'
+        };
+
+        fetch("/chat-cleanup", requestOptions)
+            .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.log('error', error));
+    });
+
+    function refreshMessages() {
+        var requestOptions = {
+            method: 'GET',
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+            },
+            redirect: 'follow'
+        };
+
+        fetch("/get-all-messages?room={{ room.code }}", requestOptions)
+            .then(response => response.json())
+            .then(result => printAllMessages(result.messages))
+            .catch(error => console.log('error', error));
+    }
+
+    function printAllMessages(messages) {
+        let html = ""
+        for (let i = 0; i < messages.length; i++) {
+            const msg = messages[i];
+            html += `
+            <div class="message">
+                <h3 class="author">${msg.author__name}</h3>
+                <p class="date">${msg.date_posted}</p>
+                <hr class="half">
+                <p class="content">
+                    ${msg.content}
+                </p>
+            </div>
+            `
+            
+        }
+        document.getElementById("messages").innerHTML = html;
+    }
+
+    function sendMessage() {
+            var requestOptions = {
+                method: 'POST',
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: JSON.stringify({
+                    "user": "{{ user }}",
+                    "room": "{{ room.code }}",
+                    "message": document.getElementById("message").value
+                }),
+                redirect: 'follow'
+            };
+
+            fetch("/send-message", requestOptions)
+                .then(response => response.json())
+                .then(result => {
+                    printAllMessages(result.messages);
+                })
+                .catch(error => console.log('error', error));
+        }
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        setInterval(refreshMessages, 5000)
+
+    </script>
+
+</body>
+
+</html>

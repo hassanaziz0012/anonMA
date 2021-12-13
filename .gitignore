@@ -1,0 +1,4 @@
+hackachat/__pycache__/
+main/__pycache__/
+main/migrations/
+db.sqlite3

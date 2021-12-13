@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hackachat</title>
+
+    <style>
+        body {
+            background-color: black;
+            font-family: monospace;
+            color: green;
+            font-size: 15px;
+        }
+
+        input.username {
+            padding: 10px 10px;
+            font-size: 20px;
+            color: green;
+            background-color: #181717;
+            outline: none;
+            border: none;
+            border: 1px solid green;
+        }
+
+        input.roomcode {
+            padding: 10px 10px;
+            font-size: 20px;
+            width: 50%;
+            color: green;
+            background-color: #181717;
+            outline: none;
+            border: none;
+            border: 1px solid green;
+        }
+
+        div.room-options {
+            visibility: hidden;
+        }
+
+        div.join-room {
+            margin-top: 1em;
+        }
+        
+        button {
+            padding: 10px 10px;
+            font-size: 20px;
+            background-color: black;
+            color: green;
+            border: 1px solid green;
+        }
+
+        button:hover {
+            cursor: pointer;
+        }
+    </style>
+
+</head>
+<body>
+    <h2>Enter username:</h2>
+
+    <div>
+        <input type="text" name="name" id="name" class="username" onchange="enableNameBtn()">
+        <button id="nameBtn" onclick="showRoomOptions()" disabled>></button>
+    </div>
+
+    <div class="room-options">
+        <h2>
+            <a href="#" class="create-room" style="color: green;">Create Room</a>
+        </h2>
+        <h2>
+            <a href="#" style="color: green;" onclick="showJoinRoomInput(event)">Join Room</a>
+
+            <div class="join-room" style="display: none;">
+                <input type="text" name="code" id="code" class="roomcode" placeholder="Invite Code..." onchange="enableJoinBtn()">
+                <button id="joinBtn" onclick="joinRoom()" disabled>></button>
+                <p class="join-room-error"></p>
+            </div>
+        </h2>
+    </div>
+
+    <script>
+        function showRoomOptions() {
+            const roomOptions = document.querySelector('.room-options');
+            roomOptions.style.visibility = "visible";
+
+            const nameInput = document.querySelector('#name');
+            nameInput.disabled = true;
+
+            const createRoomLink = document.querySelector('a.create-room');
+            createRoomLink.href = `{% url 'create-room' name=12345 %}`.replace('12345', nameInput.value)
+        }
+
+        function showJoinRoomInput(e) {
+            e.preventDefault();
+            document.querySelector('div.join-room').style.display = 'block';
+        }
+
+        function joinRoom() {
+            let user = document.querySelector('#name').value
+            let code = document.getElementById('code').value;
+            var requestOptions = {
+                method: 'GET',
+                redirect: 'follow'
+            };
+
+            fetch(`/join-room/${user}?code=${code}`, requestOptions)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success == true) {
+                        window.location = `chat/${code}?user=${user}`;
+                    } else {
+                        document.querySelector('.join-room-error').innerHTML = "Error: " + result.error;
+                    };;
+                })
+                .catch(error => console.log('error', error));
+        }
+
+        function enableNameBtn() {
+            document.getElementById("nameBtn").disabled = false;
+        }
+
+        function enableJoinBtn() {
+            document.getElementById("joinBtn").disabled = false;
+        }
+    </script>
+</body>
+</html>
