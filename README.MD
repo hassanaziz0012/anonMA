@@ -8,5 +8,8 @@ Anonymous Messaging Application (anonMA) - A very basic web-based chat applicati
 
 This project isn't currently hosted on an actual server, so that's how you would run it.
 
-## About me
-I'm a freelance developer. Wanna see more of my work? See my website here: https://www.hassandev.me
+## Author
+- Hassan Aziz
+- Web Developer and Designer
+- Website: https://www.hassandev.me
+- Check out my other [web projects](https://www.hassandev.me/projects)
